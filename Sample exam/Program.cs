@@ -1,18 +1,19 @@
-﻿using System.Linq.Expressions;
+﻿using System.Linq;
+using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Models;
 
 
 var r = new Random();
 // using (var myData = new ProductsDb()) {
-  var sw = System.Diagnostics.Stopwatch.StartNew();
+var sw = System.Diagnostics.Stopwatch.StartNew();
 
-  // write queries here
+// write queries here
 
 // }
 Console.WriteLine(sw.ElapsedMilliseconds);
 
-namespace Models 
+namespace Models // Should be split up in different file
 {
   public class ProductsDb : DbContext
   {
