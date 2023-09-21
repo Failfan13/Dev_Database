@@ -3,15 +3,45 @@ using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Npgsql.EntityFrameworkCore.PostgreSQL;
+using System.Linq;
+using System.Linq.Expressions;
 using Models;
 
 var r = new Random();
 using (var myData = new ProductsDb())
 {
   var sw = System.Diagnostics.Stopwatch.StartNew();
+  var now = DateTime.Now.ToUniversalTime();
 
   // write queries here
-  Console.WriteLine(myData.Users.Count());
+  //Console.WriteLine(myData.Users.Count());
+
+  // using "group" is a reservable (not useable)
+  // var myQuery1 = (
+  //   from g in myData.Groups //.OrderBy(g => g.Id).Skip(0).Take(100)
+  //   select new { g.Name, g.Description }
+  // ).ToList();
+
+  // foreach (var row in myQuery1)
+  // {
+  //   Console.WriteLine($"Group: {row.Name} {row.Description}");
+  // }
+
+  var myQuery2 = (
+    from u in myData.Users
+    let name = u.Name
+    let surname = u.Surname
+    let birthday = u.Birthday
+    let fullname = name + " " + surname
+    where now - birthday > TimeSpan.FromDays(3)
+    orderby birthday descending
+    select new { FullName = fullname, Surname = surname, Birthday = birthday, u.UsersInGroups }
+  ).ToList();
+
+  foreach (var row in myQuery2)
+  {
+    Console.WriteLine($"Group: {row.FullName} {row.Surname} {row.Birthday} {row.UsersInGroups.Count()}");
+  }
 
   // var users = myData.Users
   //   .Skip(5)
@@ -80,15 +110,25 @@ namespace Models
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-      modelBuilder.Entity<UserInGroup>()
-        .HasOne(ug => ug.User)
-        .WithMany(u => u.UserInGroups)
+      modelBuilder.Entity<UserInGroup>() // 1:M
+        .HasOne(ug => ug.User) // connected to one
+        .WithMany(u => u.UserInGroups) // connected to group
         .HasForeignKey(ug => ug.UserId);
 
       modelBuilder.Entity<UserInGroup>()
         .HasOne(ug => ug.Group)
-        .WithMany(u => u.UserInGroups)
-        .HasForeignKey(g => g.GroupId);
+        .WithMany(g => g.UserInGroups)
+        .HasForeignKey(ug => ug.GroupId);
+
+      // a user cannot be in more then one group
+      // it's a 1-N relation from user to group
+      // modelBuilder.Entity<UserInGroup>()
+      //     .HasIndex(u => u.UserId)
+      //     .IsUnique();
+
+      //modelBuilder.Entity<UserInGroup>()
+      //     .HasIndex(u => u.GroupId)
+      //     .IsUnique();
     }
   }
 
@@ -105,6 +145,11 @@ namespace Models
     public User User { get; set; } = null!;
     public Group Group { get; set; } = null!;
   };
+
+  // Find user id's in specific group
+  // group
+  // UsersInGroup uig where GroupId = group.Id
+  // all Users where user.Id = uig.UserId
 
 }
 
