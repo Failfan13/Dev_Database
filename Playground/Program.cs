@@ -27,21 +27,88 @@ using (var myData = new ProductsDb())
   //   Console.WriteLine($"Group: {row.Name} {row.Description}");
   // }
 
-  var myQuery2 = (
-    from u in myData.Users
-    let name = u.Name
-    let surname = u.Surname
-    let birthday = u.Birthday
-    let fullname = name + " " + surname
-    where now - birthday > TimeSpan.FromDays(3)
-    orderby birthday descending
-    select new { FullName = fullname, Surname = surname, Birthday = birthday, u.UsersInGroups }
-  ).ToList();
+  // var myQuery2 = (
+  //   from u in myData.Users
+  //   let name = u.Name
+  //   let surname = u.Surname
+  //   // let birthday = u.Birthday
+  //   let fullname = name + " " + surname
+  //   from g in myData.Groups
+  //   let fullGroup = g.Name + " " + g.Description.Substring(0, 10) + "..."
+  //   // where now - birthday > TimeSpan.FromDays(3)
+  //   // orderby birthday descending
+  //   where u.Name.CompareTo(g.Name) < 0
+  //   //select new { FullName = fullname, Surname = surname, Birthday = birthday, u.UsersInGroups }
+  //   select Tuple.Create(fullname, surname, u.UsersInGroups, fullGroup)
+  // ).ToList();
 
-  foreach (var row in myQuery2)
+  IEnumerable<int> ints()
   {
-    Console.WriteLine($"Group: {row.FullName} {row.Surname} {row.Birthday} {row.UsersInGroups.Count()}");
+    var n = 0;
+    while (true) yield return n++;
   }
+
+  Console.ReadLine();
+  // var myInts = ints().Take(100).ToList();
+  var myInts =
+  (
+    from i in ints()
+    where i % 2 == 0
+    select i
+  ).Take(100).ToList();
+  Console.ReadLine();
+
+  // var myQuery2 = (
+  //   from u in myData.Users
+  //     //from uig in myData.UsersInGroup
+  //     // where u.Id == uig.UserId
+  //     // from g in myData.Groups
+  //     // where g.Id == uig.GroupId
+  //   join uig in myData.UsersInGroup on u.Id equals uig.UserId
+  //   join g in myData.Groups on uig.GroupId equals g.Id
+  //   //where myData.UsersInGroup.Any(ug => ug.UserId == u.Id && ug.GroupId == uig.GroupId)
+  //   where uig.Priority > 5
+  //   let name = u.Name
+  //   let surname = u.Surname
+  //   let fullname = name + " " + surname
+  //   let fullGroup = g.Name + " " + g.Description.Substring(0, 10) + "..."
+  //   orderby fullname ascending
+  //   select Tuple.Create(fullname, fullGroup)
+  // ).ToList();
+
+  // foreach (var row in myQuery2)
+  // {
+  //   Console.WriteLine($"Group: {row.FullName} {row.Surname} {row.Birthday} {row.UsersInGroups.Count()}");
+  // }
+
+  // Console.ReadLine();
+  // myQuery2 = (
+  // from x in myQuery2
+  // where x.Item1.CompareTo(x.Item2) > 0
+  // orderby x.Item1
+  // select x);
+  // Console.ReadLine();
+
+  // list<(string Fullname, string Surname, DateTime Birthday, int group)> myQUery3()
+  // {
+  //   return (
+  //   from u in myData.Users
+  //   let name = u.Name
+  //   let surname = u.Surname
+  //   let birthday = u.Birthday
+  //   let fullname = name + " " + surname
+  //   where now - birthday > TimeSpan.FromDays(3)
+  //   orderby birthday descending
+  //   select Tuple.Create(fullname, surname, birthday, u.UsersInGroups)
+  //   ).ToList()
+  //   .Select(uglyTuple => uglyTuple.ToValueTuple())
+  //   .ToList();
+  // }
+
+  // void myQUery4(string name)
+  // {
+  //   myData.Database.ExecuteSqlRaw($"SELECT * from {tablename};");
+  // }
 
   // var users = myData.Users
   //   .Skip(5)
@@ -135,15 +202,15 @@ namespace Models
   public record User(Guid Id, string Name, string Surname, DateTime Birthday)
   {
     public List<UserInGroup> UserInGroups { get; set; } = null!;
-  };
-  public record Group(Guid Id, string Name, string Description)
-  {
+};
+public record Group(Guid Id, string Name, string Description)
+{
     public List<UserInGroup> UserInGroups { get; set; } = null!;
   }
-  public record UserInGroup(Guid Id, Guid UserId, Guid GroupId)
-  {
+  public record UserInGroup(Guid Id, Guid UserId, Guid GroupId, Guid Priority)
+{
     public User User { get; set; } = null!;
-    public Group Group { get; set; } = null!;
+public Group Group { get; set; } = null!;
   };
 
   // Find user id's in specific group
